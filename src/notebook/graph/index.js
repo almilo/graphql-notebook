@@ -1,4 +1,5 @@
 import './index.css';
+import { element } from 'angular';
 import { render } from 'dagre-d3';
 import d3 from 'd3';
 
@@ -19,16 +20,16 @@ function controller($scope) {
     $scope.$watch(_ => this.graph, renderGraph);
 
     function renderGraph(graph) {
-        if (!graph) {
-            return;
+        element(`#${svgElementId}`).empty();
+
+        if (graph) {
+            const renderer = render(), svg = d3.select(`#${svgElementId}`), svgGroup = svg.append('g');
+
+            renderer(d3.select(`#${svgElementId} g`), graph);
+
+            svg.attr('width', graph.graph().width + 40);
+            svg.attr('height', graph.graph().height + 40);
+            svgGroup.attr('transform', `translate(20, 20)`);
         }
-
-        const renderer = render(), svg = d3.select(`#${svgElementId}`), svgGroup = svg.append('g');
-
-        renderer(d3.select(`#${svgElementId} g`), graph);
-
-        svg.attr('width', graph.graph().width + 40);
-        svg.attr('height', graph.graph().height + 40);
-        svgGroup.attr('transform', `translate(20, 20)`);
     }
 }
