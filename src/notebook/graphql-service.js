@@ -3,6 +3,8 @@ import {
     introspectionQuery
 } from 'graphql/utilities';
 
+const patchedIntrospectionQuery = introspectionQuery.replace('subscriptionType { name }', '');
+
 export default function ($http, $q) {
     return {
         getClientSchema,
@@ -10,25 +12,25 @@ export default function ($http, $q) {
     };
 
     function getClientSchema(endpointUrl) {
-        return executeQuery(endpointUrl, introspectionQuery).then(schema => buildClientSchema(schema));
+        return executeQuery(endpointUrl, patchedIntrospectionQuery).then(schema => buildClientSchema(schema));
     }
 
     function executeQuery(endpointUrl, query, variables) {
-        const data = {
+        const config = {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            params: {
                 query: query || '{}',
                 variables: variables || '{}'
-            },
-            config = {
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            };
+            }
+        };
 
-        return $http.post(endpointUrl, data, config).then(extractResult);
+        return $http.get(endpointUrl, config).then(extractResult);
 
         function extractResult(response) {
-            return response.data.errors ? $q.reject(response.data.errors) : response.data.data;
+            return response.data.errors && response.data.errors.length > 0 ? $q.reject(response.data.errors) : response.data.data;
         }
     }
 }
