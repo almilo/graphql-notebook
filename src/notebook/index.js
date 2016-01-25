@@ -26,11 +26,12 @@ type Droid {
   appearsIn: [Episode]
   primaryFunction: String
 }`,
-    defaultEndpointUrl = 'http://localhost:3000/api/graphql',
+    defaultRemoteSchemaUrl = 'http://localhost:3000/api/graphql',
     template = `
         <div class="form-group">
-            <label for="endpointUrl">Remote endpoint</label>
-            <input ng-model="notebookController.endpointUrl" class="form-control" id="endpointUrl">
+            <label for="remoteSchemaUrl">Remote schema</label>
+            <input ng-model="notebookController.remoteSchemaUrl" class="form-control" id="remoteSchemaUrl">
+            <button ng-click="notebookController.fetchRemoteSchema()" class="btn btn-danger pull-right">Fetch</button>
         </div>
         <div class="row">
             <div class="form-group col-md-6">
@@ -49,38 +50,40 @@ type Droid {
 
 class controller {
     constructor($scope, graphqlService, graphqlGraphService) {
-        this.endpointUrl = defaultEndpointUrl;
-        this.remoteSchema = '';
         this.schema = defaultSchema;
+        this.remoteSchemaUrl = defaultRemoteSchemaUrl;
+        this.remoteSchema = '';
         this.graph = undefined;
         this.error = undefined;
         this.graphqlService = graphqlService;
         this.graphqlGraphService = graphqlGraphService;
 
-        $scope.$watch(_ => this.endpointUrl, this.updateRemoteSchema.bind(this));
         $scope.$watch(_ => this.remoteSchema, this.updateGraph.bind(this));
         $scope.$watch(_ => this.schema, this.updateGraph.bind(this));
     }
 
-    updateRemoteSchema(endpointUrl) {
-        if (!endpointUrl) {
+    fetchRemoteSchema() {
+        if (!this.remoteSchemaUrl) {
             this.remoteSchema = '';
         } else {
-            this.graphqlService.getClientSchema(endpointUrl)
+            this.graphqlService.getClientSchema(this.remoteSchemaUrl)
                 .then(clientSchema => this.remoteSchema = printSchema(clientSchema))
                 .catch(_ => this.remoteSchema = '');
         }
     }
 
     updateGraph() {
-        const bothSchemas = this.remoteSchema + '\n' + this.schema;
+        const bothSchemas = `${this.remoteSchema} \n ${this.schema}`.trim();
 
-        try {
-            this.graph = this.graphqlGraphService(parse(bothSchemas));
-            this.error = undefined;
-        } catch (error) {
-            this.graph = undefined;
-            this.error = error;
+        this.graph = undefined;
+        this.error = undefined;
+
+        if (bothSchemas) {
+            try {
+                this.graph = this.graphqlGraphService(parse(bothSchemas));
+            } catch (error) {
+                this.error = error;
+            }
         }
     }
 
