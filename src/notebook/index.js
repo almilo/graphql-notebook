@@ -21,23 +21,42 @@ type Droid {
 }`,
     defaultRemoteSchemaUrl = 'http://localhost:3000/api/graphql',
     template = `
-        <uib-accordion close-others="true" class="col-md-6">
-            <uib-accordion-group heading="Local schema" is-open="true">
-                <textarea ng-model="notebookController.localSchema" id="localSchema" class="form-control" rows="12"></textarea>
-                <label for="error">Errors</label>
-                <textarea ng-model="notebookController.error" id="error" class="form-control" rows="4"></textarea>
-            </uib-accordion-group>
-            <uib-accordion-group heading="Remote schema">
-                <div class="input-group">
-                    <input ng-model="notebookController.remoteSchemaUrl" class="form-control">
-                    <span class="input-group-btn">
-                        <button ng-click="notebookController.fetchRemoteSchema()" class="btn btn-danger pull-right">Fetch</button>
-                    </span>
-                </div>
-                <textarea ng-model="notebookController.remoteSchema" class="form-control" rows="12" readonly></textarea>
-            </uib-accordion-group>
-        </uib-accordion>
-        <graphql-notebook-graph graph="notebookController.graph" class="col-md-6"></graphql-notebook-graph>
+    <div class="row">
+        <div class="col-md-6">
+            <uib-accordion close-others="true" class="col-md-12">
+                <uib-accordion-group heading="Local schema" is-open="true">
+                    <textarea ng-model="notebookController.localSchema" id="localSchema" class="form-control" rows="12"></textarea>
+                    <label for="error">Errors</label>
+                    <textarea ng-model="notebookController.error" id="error" class="form-control" rows="4" readonly></textarea>
+                </uib-accordion-group>
+                <uib-accordion-group heading="Remote schema">
+                    <div class="input-group">
+                        <input
+                            ng-model="notebookController.remoteSchemaUrl"
+                            placeholder="endpoint URL"
+                            class="form-control">
+                        <span class="input-group-btn">
+                            <button
+                                ng-click="notebookController.fetchRemoteSchema()"
+                                ng-disabled="!notebookController.remoteSchemaUrl"
+                                class="btn btn-danger pull-right">
+                                Fetch
+                            </button>
+                        </span>
+                    </div>
+                    <textarea ng-model="notebookController.remoteSchema" class="form-control" rows="12" readonly></textarea>
+                </uib-accordion-group>
+            </uib-accordion>
+        </div>
+        <div class="col-md-6">
+            <graphql-notebook-graph graph="notebookController.graph" class="col-md-12"></graphql-notebook-graph>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <graphql-query endpoint-url="notebookController.remoteSchemaUrl" class="col-md-12"></graphql-query>
+        </div>
+    </div>
 `;
 
 class controller {

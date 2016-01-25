@@ -14,11 +14,13 @@
     "babel-polyfill": "^6.3.14",
     "bootstrap": "^3.3.6",
     "codemirror": "^5.11.0",
+    "codemirror-graphql": "^0.2.1",
     "d3": "^3.5.13",
     "dagre": "^0.7.4",
     "dagre-d3": "^0.4.11",
     "graphql": "^0.4.14",
-    "jquery": "^2.2.0"
+    "jquery": "^2.2.0",
+    "jsonlint": "^1.6.2"
   },
   "devDependencies": {
     "babel-core": "^6.4.5",
