@@ -2,7 +2,7 @@
   "name": "graphql-notebook",
   "version": "0.0.1",
   "scripts": {
-    "dev": "node node_modules/webpack-dev-server/bin/webpack-dev-server --watch"
+    "dev": "node node_modules/webpack-dev-server/bin/webpack-dev-server --port 8000"
   },
   "author": "Alberto Mijares <almilo@almilo.es>",
   "license": "MIT",
