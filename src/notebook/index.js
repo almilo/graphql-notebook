@@ -49,7 +49,7 @@ type Droid {
             </uib-accordion>
         </div>
         <div class="col-md-6">
-            <graphql-notebook-graph graph="notebookController.graph" class="col-md-12"></graphql-notebook-graph>
+            <graphql-graph graph="notebookController.graph" class="col-md-12"></graphql-graph>
         </div>
     </div>
     <div class="row">
