@@ -1,14 +1,7 @@
 import { parse } from 'graphql/language';
 import { printSchema } from 'graphql/utilities';
-import CodeMirror from 'expose?CodeMirror!codemirror';
-import 'codemirror/addon/comment/comment';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/brace-fold';
-import 'angular-ui-codemirror';
 
-const defaultSchema =
+const defaultLocalSchema =
         `enum Episode { NEWHOPE, EMPIRE, JEDI }
 
 type Human {
@@ -28,29 +21,28 @@ type Droid {
 }`,
     defaultRemoteSchemaUrl = 'http://localhost:3000/api/graphql',
     template = `
-        <div class="form-group">
-            <label for="remoteSchemaUrl">Remote schema</label>
-            <input ng-model="notebookController.remoteSchemaUrl" class="form-control" id="remoteSchemaUrl">
-            <button ng-click="notebookController.fetchRemoteSchema()" class="btn btn-danger pull-right">Fetch</button>
-        </div>
-        <div class="row">
-            <div class="form-group col-md-6">
-                <label for="schema">Schema</label>
-                <textarea ng-model="notebookController.schema" id="schema" class="form-control" rows="12"></textarea>
-            </div>
-            <graphql-notebook-graph graph="notebookController.graph" class="col-md-6"></graphql-notebook-graph>
-        </div>
-        <div class="row">
-            <div class="form-group col-md-6">
-                <label for="error">Error</label>
+        <uib-accordion close-others="true" class="col-md-6">
+            <uib-accordion-group heading="Local schema" is-open="true">
+                <textarea ng-model="notebookController.localSchema" id="localSchema" class="form-control" rows="12"></textarea>
+                <label for="error">Errors</label>
                 <textarea ng-model="notebookController.error" id="error" class="form-control" rows="4"></textarea>
-            </div>
-        </div>
+            </uib-accordion-group>
+            <uib-accordion-group heading="Remote schema">
+                <div class="input-group">
+                    <input ng-model="notebookController.remoteSchemaUrl" class="form-control">
+                    <span class="input-group-btn">
+                        <button ng-click="notebookController.fetchRemoteSchema()" class="btn btn-danger pull-right">Fetch</button>
+                    </span>
+                </div>
+                <textarea ng-model="notebookController.remoteSchema" class="form-control" rows="12" readonly></textarea>
+            </uib-accordion-group>
+        </uib-accordion>
+        <graphql-notebook-graph graph="notebookController.graph" class="col-md-6"></graphql-notebook-graph>
 `;
 
 class controller {
     constructor($scope, graphqlService, graphqlGraphService) {
-        this.schema = defaultSchema;
+        this.localSchema = defaultLocalSchema;
         this.remoteSchemaUrl = defaultRemoteSchemaUrl;
         this.remoteSchema = '';
         this.graph = undefined;
@@ -58,8 +50,8 @@ class controller {
         this.graphqlService = graphqlService;
         this.graphqlGraphService = graphqlGraphService;
 
+        $scope.$watch(_ => this.localSchema, this.updateGraph.bind(this));
         $scope.$watch(_ => this.remoteSchema, this.updateGraph.bind(this));
-        $scope.$watch(_ => this.schema, this.updateGraph.bind(this));
     }
 
     fetchRemoteSchema() {
@@ -73,40 +65,18 @@ class controller {
     }
 
     updateGraph() {
-        const bothSchemas = `${this.remoteSchema} \n ${this.schema}`.trim();
+        const mixedSchema = `${this.localSchema} \n ${this.remoteSchema}`.trim();
 
         this.graph = undefined;
         this.error = undefined;
 
-        if (bothSchemas) {
+        if (mixedSchema) {
             try {
-                this.graph = this.graphqlGraphService(parse(bothSchemas));
+                this.graph = this.graphqlGraphService(parse(mixedSchema));
             } catch (error) {
                 this.error = error;
             }
         }
-    }
-
-    initializeEditorOptions() {
-        return {
-            mode: 'javascript',
-            lineNumbers: true,
-            lineWrapping: true,
-            tabSize: 2,
-            autoCloseBrackets: true,
-            matchBrackets: true,
-            showCursorWhenSelecting: true,
-            foldGutter: {
-                minFoldSize: 4
-            },
-            gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-            extraKeys: {
-                'Ctrl-Left': 'goSubwordLeft',
-                'Ctrl-Right': 'goSubwordRight',
-                'Alt-Left': 'goGroupLeft',
-                'Alt-Right': 'goGroupRight'
-            }
-        };
     }
 }
 
