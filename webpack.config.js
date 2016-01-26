@@ -17,7 +17,8 @@ module.exports = {
                 exclude: /node_modules/,
                 loader: 'babel',
                 query: {
-                    presets: ['es2015']
+                    presets: ['es2015', 'stage-0'],
+                    plugins: ['transform-decorators-legacy']
                 }
             },
             {test: /\.css$/, loader: ExtractTextPlugin.extract('css')},

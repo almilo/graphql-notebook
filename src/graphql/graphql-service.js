@@ -2,20 +2,23 @@ import {
     buildClientSchema,
     introspectionQuery
 } from 'graphql/utilities';
+import { Injectable, Inject } from 'ng-forward';
 
 const patchedIntrospectionQuery = introspectionQuery.replace('subscriptionType { name }', '');
 
-export default function ($http, $q) {
-    return {
-        getClientSchema,
-        executeQuery
-    };
-
-    function getClientSchema(endpointUrl) {
-        return executeQuery(endpointUrl, patchedIntrospectionQuery).then(schema => buildClientSchema(schema));
+@Injectable
+@Inject('$http', '$q')
+export default class GraphQLService {
+    constructor($http, $q) {
+        this.$http = $http;
+        this.$q = $q;
     }
 
-    function executeQuery(endpointUrl, query, variables) {
+    getClientSchema(endpointUrl) {
+        return this.executeQuery(endpointUrl, patchedIntrospectionQuery).then(schema => buildClientSchema(schema));
+    }
+
+    executeQuery(endpointUrl, query, variables) {
         const config = {
             headers: {
                 'Accept': 'application/json',
@@ -27,10 +30,12 @@ export default function ($http, $q) {
             }
         };
 
-        return $http.get(endpointUrl, config).then(extractResult);
+        return this.$http.get(endpointUrl, config).then(extractResult);
 
         function extractResult(response) {
-            return response.data.errors && response.data.errors.length > 0 ? $q.reject(response.data.errors) : response.data.data;
+            return response.data.errors && response.data.errors.length > 0 ?
+                $q.reject(response.data.errors) :
+                response.data.data;
         }
     }
 }

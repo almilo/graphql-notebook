@@ -7,6 +7,7 @@ import {
     GraphQLString,
     GraphQLID
 } from 'graphql/type';
+import { Injectable } from 'ng-forward';
 
 const ignoreTypesNames = [
     GraphQLBoolean.name,
@@ -16,8 +17,9 @@ const ignoreTypesNames = [
     GraphQLID.name
 ];
 
-export default function () {
-    return function (schemaAst) {
+@Injectable
+export default class GraphQLGraphService {
+    toGraph(schemaAst) {
         const graph = new graphlib.Graph()
             .setGraph({})
             .setDefaultEdgeLabel(_ => ({}))
@@ -26,35 +28,35 @@ export default function () {
         visit(schemaAst, graphBuilderVisitorFactory(graph));
 
         return graph;
-    };
 
-    function graphBuilderVisitorFactory(graph) {
-        let currentParentTypeName;
+        function graphBuilderVisitorFactory(graph) {
+            let currentParentTypeName;
 
-        return {
-            ObjectTypeDefinition(node) {
-                currentParentTypeName = node.name.value;
-                graph.setNode(currentParentTypeName, {label: currentParentTypeName});
-            },
-            FieldDefinition(node) {
-                switch (node.type.kind) {
-                    case 'NamedType':
-                        maybeAddRelation(node);
-                        break;
-                    case 'ListType':
-                        maybeAddRelation(node, 's');
-                        break;
+            return {
+                ObjectTypeDefinition(node) {
+                    currentParentTypeName = node.name.value;
+                    graph.setNode(currentParentTypeName, {label: currentParentTypeName});
+                },
+                FieldDefinition(node) {
+                    switch (node.type.kind) {
+                        case 'NamedType':
+                            maybeAddRelation(node);
+                            break;
+                        case 'ListType':
+                            maybeAddRelation(node, 's');
+                            break;
+                    }
                 }
-            }
-        };
+            };
 
-        function maybeAddRelation(node, cardinality = '') {
-            const fieldName = node.name.value, relatedTypeName = unwrapType(node).name.value;
+            function maybeAddRelation(node, cardinality = '') {
+                const fieldName = node.name.value, relatedTypeName = unwrapType(node).name.value;
 
-            if (ignoreTypesNames.indexOf(relatedTypeName) === -1) {
-                const label = `${currentParentTypeName} ${humanize(fieldName)} ${relatedTypeName}${cardinality}`;
+                if (ignoreTypesNames.indexOf(relatedTypeName) === -1) {
+                    const label = `${currentParentTypeName} ${humanize(fieldName)} ${relatedTypeName}${cardinality}`;
 
-                graph.setEdge(currentParentTypeName, relatedTypeName, {label});
+                    graph.setEdge(currentParentTypeName, relatedTypeName, {label});
+                }
             }
         }
     }
