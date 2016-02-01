@@ -5,7 +5,10 @@ var path = require('path'),
     HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-    entry: client('index.js'),
+    entry: [
+        'babel-polyfill',
+        client('index.js')
+    ],
     output: {
         path: 'dist',
         filename: 'app.js'
